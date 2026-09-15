@@ -1,0 +1,8 @@
+# User-level ruff defaults, for projects that ship no ruff config of their own.
+# A pyproject.toml / ruff.toml inside a project always wins over this file, so
+# this only sets the floor -- e.g. ~/cs/assignment1-basics already pins
+# line-length = 120 itself and is unaffected.
+#
+# A half-screen kitty window fits ~120 columns, but 80 is the preference; nvim
+# draws a colorcolumn there to match (see nvim/lua/config/options.lua).
+line-length = 80

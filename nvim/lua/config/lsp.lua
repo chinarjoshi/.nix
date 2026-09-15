@@ -100,7 +100,10 @@ end
 
 -- 4. Diagnostics presentation ---------------------------------------------------
 vim.diagnostic.config({
-    virtual_text = { prefix = "●", spacing = 2 },
+    -- No end-of-line virtual text. The gutter signs below still mark which
+    -- lines are affected; <leader>xd floats the message for the current line
+    -- and <leader>xq dumps them all to the loclist.
+    virtual_text = false,
     severity_sort = true,
     underline = true,
     update_in_insert = false, -- don't churn diagnostics mid-keystroke

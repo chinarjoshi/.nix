@@ -174,7 +174,6 @@ in
       telescope-nvim
       plenary-nvim # was a telescope `dependencies` entry
       blink-cmp # Rust fuzzy matcher is built by the derivation, no download
-      friendly-snippets # was a blink.cmp `dependencies` entry
       conform-nvim
       # Grammars are pinned here instead of `ensure_installed` + `:TSInstall`.
       # Adding a language = add it to this list and rebuild.
@@ -212,6 +211,10 @@ in
   # stay real .lua files that lua_ls can attach to.
   xdg.configFile."nvim/lua".source = ./nvim/lua;
   xdg.configFile."nvim/.luarc.json".source = ./nvim/.luarc.json;
+
+  # ruff's user-level config, used only by projects with no ruff settings of
+  # their own. conform formats python through these binaries on save.
+  xdg.configFile."ruff/ruff.toml".source = ./ruff/ruff.toml;
 
   # Only prefs_user.config is declarative. sioyek also writes auto.config
   # (window geometry) and three sqlite DBs into the same directory, so the
