@@ -24,6 +24,15 @@ in
   programs.zsh.enable = true;
   users.users.chijoshi.shell = pkgs.zsh;
 
+  # Passwordless sudo. The option type is `lines`, so this appends to the
+  # terminfo defaults nix-darwin already writes into
+  # /etc/sudoers.d/10-nix-darwin-extra-config rather than replacing them.
+  # That drop-in is included at the end of /etc/sudoers, and sudo is
+  # last-match-wins, so this overrides the stock `%admin ALL=(ALL) ALL`.
+  security.sudo.extraConfig = ''
+    chijoshi ALL=(ALL) NOPASSWD: ALL
+  '';
+
   system.defaults.CustomUserPreferences = {
     "com.knollsoft.Rectangle" = {
       # cmd + shift + h = left half (keyCode 4 = h, modifierFlags 1179648 = cmd+shift)
@@ -100,11 +109,11 @@ in
       local dirMap = {
         h = "West",
         j = "South",
+        l = "East",
       }
 
-      local hotkeys = {}
       for key, dir in pairs(dirMap) do
-        hotkeys[key] = hs.hotkey.bind({"cmd"}, key, function()
+        hs.hotkey.bind({"cmd"}, key, function()
           local win = hs.window.focusedWindow()
           if not win then return end
 
@@ -121,27 +130,6 @@ in
           })
         end)
       end
-
-      -- Cmd+K / Ctrl+L -> Cmd+L (focus address bar in Chrome etc.)
-      local function sendCmdL()
-        hs.eventtap.keyStroke({"cmd"}, "l", 0)
-      end
-      hs.hotkey.bind({"cmd"}, "k", sendCmdL)
-      hs.hotkey.bind({"ctrl"}, "l", sendCmdL)
-
-      -- Cmd+Tab to toggle between space 1 and 2 (uses native Ctrl+1/2 for speed)
-      local currentSpace = 1
-      cmdTabWatcher = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
-        local flags = event:getFlags()
-        if flags.cmd and not flags.shift and not flags.alt and not flags.ctrl and event:getKeyCode() == 48 then
-          currentSpace = currentSpace == 1 and 2 or 1
-          hs.eventtap.keyStroke({"ctrl"}, tostring(currentSpace), 0)
-          return true
-        end
-        return false
-      end)
-      cmdTabWatcher:start()
-
     '';
 
     programs.zsh.shellAliases = {
