@@ -8,11 +8,13 @@ local o = vim.o
 
 -- Lines & navigation
 o.number = true
-o.relativenumber = true
+o.relativenumber = false -- absolute line numbers
 o.cursorline = true
 o.scrolloff = 8
 o.sidescrolloff = 8
-o.wrap = false
+o.wrap = true
+o.linebreak = true -- wrap at word boundaries, not mid-word
+o.breakindent = true -- continuation lines keep the original indent
 
 -- Indentation: 4 spaces (PEP 8). Filetype plugins may override per language.
 o.expandtab = true
@@ -45,15 +47,6 @@ o.showmode = false -- lualine already renders the mode
 o.pumheight = 10
 o.updatetime = 250
 o.timeoutlen = 400
-
--- Formatter line width, made visible. A half-screen kitty on the laptop fits
--- ~120 columns, so 80 sits well inside it. Kept in step with `line-length`
--- in ruff/ruff.toml -- change both together.
---
--- Caveat: a project's own ruff config beats the user-level one, so anything
--- with `line-length` in its pyproject.toml still formats at that width and
--- will overshoot this guide. ~/cs/assignment1-basics pins 120.
-o.colorcolumn = "80"
 
 o.clipboard = "unnamedplus" -- share the macOS system clipboard
 o.mouse = "a" -- set to "" if you want it fully off
