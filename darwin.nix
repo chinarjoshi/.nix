@@ -304,6 +304,9 @@ in
     '';
   };
 
+  # macOS doesn't load the fonts Home Manager links into ~/Library/Fonts.
+  fonts.packages = [ pkgs.nerd-fonts.inconsolata ];
+
   environment.systemPackages = [
     pkgs.libtool
     glibtool
