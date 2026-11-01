@@ -1,6 +1,3 @@
--- Global keymaps. LSP keymaps live in config/lsp.lua (they only make sense once a
--- server attaches); plugin keymaps live next to their plugin spec.
-
 local map = vim.keymap.set
 
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
@@ -28,9 +25,6 @@ map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 -- Stay in visual mode when shifting
 map("v", "<", "<gv")
 map("v", ">", ">gv")
-
--- Every <leader> map lives in config/leader.lua (Doom Emacs layout).
--- Diagnostics: [d / ]d jump and <C-w>d floats the line, all built in on 0.11.
 
 -- Escape out of :terminal insert mode
 map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Terminal: normal mode" })

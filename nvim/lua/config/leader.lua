@@ -1,17 +1,9 @@
--- Doom Emacs-style <Space> leader tree. Every leader map lives here so the
--- layout reads as one table, like Doom's +default/+evil bindings. Loaded last
--- (see initLua in common.nix) so which-key and every plugin are already set up.
---
--- Not ported, because they need plugins this config doesn't have:
--- SPC p p (switch project), SPC TAB (workspaces), SPC n (org notes) and
--- SPC g g as a real magit (it opens git status in Telescope instead).
+-- Doom Emacs-style <Space> leader tree. Loaded last so plugins are already set up.
 
 local map = vim.keymap.set
 local tb = function() return require("telescope.builtin") end
 local gs = function() return require("gitsigns") end
 
--- Project root = nearest .git above the current buffer, else the cwd. This is
--- what projectile does for SPC SPC / SPC / in Doom.
 local function root()
     return vim.fs.root(0, ".git") or vim.uv.cwd()
 end
@@ -204,7 +196,7 @@ leader("ht", function() tb().colorscheme({ enable_preview = true }) end, "Load t
 leader("qq", "<cmd>quitall<CR>", "Quit")
 leader("qQ", "<cmd>quitall!<CR>", "Quit without saving")
 
--- Visual-mode paste that keeps the register (not Doom, but kept from before).
+-- Visual-mode paste that keeps the register.
 leader("p", [["_dP]], "Paste (keep register)", "x")
 
 -- which-key group labels --------------------------------------------------------

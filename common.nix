@@ -1,21 +1,26 @@
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
 
 let
-  # sioyek reads ~/.config/sioyek AND the platform-native config dir, loading
-  # the latter second so it wins. Target the one that actually takes effect
-  # rather than relying on that precedence.
-  sioyekPrefs =
-    if pkgs.stdenv.isDarwin
-    then "Library/Application Support/sioyek/prefs_user.config"
-    else ".config/sioyek/prefs_user.config";
+  # Claude Code also writes to this file, so merge keys in instead of owning it.
+  setClaudeSettings = pkgs.writeShellScript "set-claude-settings" ''
+    file="$HOME/.claude/settings.json"
+    jq=${pkgs.jq}/bin/jq
+    mkdir -p "$HOME/.claude"
+    [ -f "$file" ] || echo '{}' > "$file"
+    tmp=$(mktemp)
+    $jq '.permissions.defaultMode = "bypassPermissions" | .skipDangerousModePermissionPrompt = true' \
+      "$file" > "$tmp" && cat "$tmp" > "$file"
+    rm -f "$tmp"
+  '';
 in
 {
   home.stateVersion = "24.11";
 
-  # uv ships its own bundled CA store, which does not contain the corporate
-  # root CA used for TLS interception -- every fetch from pypi fails with
-  # `invalid peer certificate: UnknownIssuer`. This makes uv use the macOS
-  # keychain instead, so it stays correct as IT rotates the CA.
+  home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    run ${setClaudeSettings} || echo "warning: could not update the Claude settings" >&2
+  '';
+
+  # Use the system trust store, since uv's bundled CAs fail on TLS-intercepting networks.
   home.sessionVariables.UV_NATIVE_TLS = "1";
 
   programs.delta = {
@@ -141,9 +146,7 @@ in
       l = "ls -lAFgG --color=auto";
       c = "claude --dangerously-skip-permissions";
       cr = "claude --dangerously-skip-permissions --resume";
-      cc = "claude --dangerously-skip-permissions --continue";
       python = "python3";
-      music = "cd ~/.local/share/org.gnome.SoundRecorder";
     };
   };
 
@@ -159,10 +162,6 @@ in
     };
   };
 
-  # Neovim. Plugins come from nixpkgs rather than lazy.nvim; the setup bodies
-  # that used to live inside lazy specs are now plain modules in nvim/lua/plugins.
-  # Everything loads at startup -- the old `event = "VeryLazy"` / `cmd = ...`
-  # deferral is gone, which costs a few ms and buys reproducibility.
   programs.neovim = {
     enable = true;
 
@@ -172,11 +171,9 @@ in
       gitsigns-nvim
       which-key-nvim
       telescope-nvim
-      plenary-nvim # was a telescope `dependencies` entry
-      blink-cmp # Rust fuzzy matcher is built by the derivation, no download
+      plenary-nvim
+      blink-cmp
       conform-nvim
-      # Grammars are pinned here instead of `ensure_installed` + `:TSInstall`.
-      # Adding a language = add it to this list and rebuild.
       (nvim-treesitter.withPlugins (p: with p; [
         bash
         json
@@ -193,8 +190,6 @@ in
       ]))
     ];
 
-    # The old init.lua, minus `require("config.lazy")`. Plugins are already on
-    # the packpath by the time this runs, so load order is just require order.
     initLua = ''
       require("config.options")
       require("config.keymaps")
@@ -208,28 +203,13 @@ in
     '';
   };
 
-  # Symlinked as a tree rather than inlined into extraLuaConfig so the modules
-  # stay real .lua files that lua_ls can attach to.
   xdg.configFile."nvim/lua".source = ./nvim/lua;
   xdg.configFile."nvim/.luarc.json".source = ./nvim/.luarc.json;
 
-  # ruff's user-level config, used only by projects with no ruff settings of
-  # their own. conform formats python through these binaries on save.
-  xdg.configFile."ruff/ruff.toml".source = ./ruff/ruff.toml;
-
-  # Only prefs_user.config is declarative. sioyek also writes auto.config
-  # (window geometry) and three sqlite DBs into the same directory, so the
-  # directory itself has to stay mutable -- never symlink the whole thing.
-  home.file.${sioyekPrefs}.source = ./sioyek/prefs_user.config;
-
   home.packages = with pkgs; [
-    arp-scan
-    arping
     btop
     cargo
-    clang-tools
     cmake
-    dbmate
     fd
     fzf
     gcc
@@ -237,33 +217,18 @@ in
     gnumake
     golangci-lint
     golines
-    gopls
     grpc
     grpcurl
-    inter
     jq
     libiconv
-    libpq
-    lua-language-server
     nerd-fonts.inconsolata
-    nmap
-    nodePackages.bash-language-server
-    nodePackages.typescript-language-server
-    nodePackages.vscode-langservers-extracted
-    nodePackages.yaml-language-server
     nodejs
     pandoc
     fswatch
-    pdsh
-    postgresql_14
     pre-commit
     pyright
     ripgrep
     ruff
-    sioyek
-    sqlc
-    squashfsTools
-    taplo
     tealdeer
     tree
     unzip

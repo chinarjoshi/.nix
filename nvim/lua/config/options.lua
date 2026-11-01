@@ -1,12 +1,8 @@
--- Editor behaviour. Pure vim options -- moved to Nix untouched, as planned.
-
--- Leader must be set before any module that declares <leader> maps is required.
+-- Must be set before any module that declares <leader> maps is required.
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- No remote-plugin providers are used. Probing for them is not free: opening a
--- .py file makes the python3 provider interrogate `python3` for pynvim, which
--- took ~7s against the shared conda env on stark11.
+-- Providers are unused, and probing for them can slow down opening files.
 vim.g.loaded_python3_provider = 0
 vim.g.loaded_node_provider = 0
 vim.g.loaded_perl_provider = 0
@@ -16,7 +12,7 @@ local o = vim.o
 
 -- Lines & navigation
 o.number = true
-o.relativenumber = false -- absolute line numbers
+o.relativenumber = false
 o.cursorline = true
 o.scrolloff = 8
 o.sidescrolloff = 8
@@ -24,7 +20,7 @@ o.wrap = true
 o.linebreak = true -- wrap at word boundaries, not mid-word
 o.breakindent = true -- continuation lines keep the original indent
 
--- Indentation: 4 spaces (PEP 8). Filetype plugins may override per language.
+-- Indentation
 o.expandtab = true
 o.shiftwidth = 4
 o.tabstop = 4
@@ -41,7 +37,7 @@ o.hlsearch = true
 o.splitright = true
 o.splitbelow = true
 
--- Files: persistent undo instead of swap/backup clutter
+-- Files
 o.undofile = true
 o.swapfile = false
 o.backup = false
@@ -51,15 +47,14 @@ o.confirm = true -- prompt instead of failing when quitting a dirty buffer
 o.termguicolors = true
 o.signcolumn = "yes" -- always reserve the gutter so text doesn't jump
 o.winborder = "rounded" -- 0.11+: borders on hover/diagnostic/signature floats
-o.showmode = true -- lualine no longer renders the mode; cmdline does
+o.showmode = true
 o.pumheight = 10
 o.updatetime = 250
 o.timeoutlen = 400
 
-o.clipboard = "unnamedplus" -- share the macOS system clipboard
-o.mouse = "a" -- set to "" if you want it fully off
+o.clipboard = "unnamedplus"
+o.mouse = "a"
 
--- Surface whitespace that silently breaks Python indentation
 o.list = true
 vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 

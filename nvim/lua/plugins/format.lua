@@ -1,9 +1,7 @@
--- conform.nvim: formatting on save, driven by the ruff binary from Nix.
--- The lazy.nvim `keys` entry became a plain vim.keymap.set below.
 require("conform").setup({
     formatters_by_ft = {
         python = { "ruff_organize_imports", "ruff_format" },
-        lua = { "stylua" }, -- no-op until stylua is on PATH (not in home.packages yet)
+        lua = { "stylua" }, -- skipped unless stylua is on PATH
     },
     -- Returning nil skips formatting, which is how the toggle below works.
     format_on_save = function(bufnr)
@@ -13,8 +11,6 @@ require("conform").setup({
         return { timeout_ms = 1500, lsp_format = "fallback" }
     end,
 })
-
--- SPC c f formats (config/leader.lua).
 
 -- :FormatToggle  -> global, :FormatToggle! -> this buffer only
 vim.api.nvim_create_user_command("FormatToggle", function(args)
