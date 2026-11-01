@@ -23,6 +23,19 @@ in
   # Use the system trust store, since uv's bundled CAs fail on TLS-intercepting networks.
   home.sessionVariables.UV_NATIVE_TLS = "1";
 
+  programs.git = {
+    enable = true;
+    settings = {
+      user = {
+        name = "Chinar Joshi";
+        email = "chinarjoshi7@gmail.com";
+      };
+      merge.conflictstyle = "diff3";
+      diff.colorMoved = "default";
+      push.autoSetupRemote = true;
+    };
+  };
+
   programs.delta = {
     enable = true;
     options = {
@@ -37,7 +50,7 @@ in
     dotDir = "${config.xdg.configHome}/zsh";
 
     envExtra = ''
-      export PATH="/opt/homebrew/opt/go@1.22/bin:$HOME/.local/bin:$HOME/.cargo/bin:/opt/homebrew/bin:$PATH"
+      export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
       export DOTFILES=$HOME/.config
       export EDITOR='nvim'
       export AUTOENV_ASSUME_YES='1'
@@ -47,7 +60,8 @@ in
     initContent = ''
       export HISTFILE=~/.histfile
       setopt appendhistory INC_APPEND_HISTORY SHARE_HISTORY PROMPT_SUBST autocd extended_glob
-      unsetopt extended_history beep
+      unsetopt extended_history beep HIST_BEEP LIST_BEEP
+      [ -f ~/.aliases.sh ] && . ~/.aliases.sh
       autoload -Uz compinit && compinit
       zstyle ':completion:*' matcher-list ''' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
@@ -152,14 +166,8 @@ in
 
   programs.kitty = {
     enable = true;
-    settings = {
-      macos_option_as_alt = "yes";
-    };
-    keybindings = {
-      "opt+b" = "send_text all \\x1bb";
-      "opt+f" = "send_text all \\x1bf";
-      "f1" = "toggle_layout stack";
-    };
+    font.name = "Inconsolata Nerd Font Mono";
+    keybindings."f1" = "toggle_layout stack";
   };
 
   programs.neovim = {
@@ -238,6 +246,7 @@ in
     zip
     bun
     gh
+    codex
     zellij
     obsidian
   ];

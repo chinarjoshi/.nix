@@ -70,7 +70,7 @@ in
     shell = pkgs.zsh;
     extraGroups = [ "wheel" "input" "networkmanager" "video" "docker" ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPbtN5PmfwSZefLuc8k3vLTBvJTqqKpp8E+8zzTyswB5 c@XPS"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPbtN5PmfwSZefLuc8k3vLTBvJTqqKpp8E+8zzTyswB5 c@linux"
     ];
   };
 
@@ -82,23 +82,13 @@ in
       wifi.backend = "iwd";
       wifi.powersave = false;
     };
-    hostName = "XPS";
+    hostName = "linux";
   };
 
   xdg.portal.enable = true;
   xdg.portal.wlr.enable = true;
 
-  security = {
-    sudo.enable = false;
-    doas = {
-      enable = true;
-      extraRules = [{
-        users = ["c"];
-        noPass = true;
-        keepEnv = true;
-      }];
-    };
-  };
+  security.sudo.wheelNeedsPassword = false;
 
   services.avahi = {
     enable = true;
@@ -192,19 +182,6 @@ in
     home.username = "c";
     home.homeDirectory = "/home/c";
 
-    programs.git = {
-      enable = true;
-      settings = {
-        user = {
-          name = "Chinar Joshi";
-          email = "chinarjoshi7@gmail.com";
-        };
-        merge.conflictstyle = "diff3";
-        diff.colorMoved = "default";
-        push.autoSetupRemote = true;
-      };
-    };
-
     programs.zsh = {
       envExtra = lib.mkAfter ''
         export QT_QPA_PLATFORM='wayland'
@@ -216,8 +193,7 @@ in
       '';
 
       shellAliases = {
-        sudo = "doas";
-        rebuild = "doas nixos-rebuild switch --flake '${config.home.homeDirectory}/nixos#XPS'";
+        rebuild = "sudo nixos-rebuild switch --flake '${config.home.homeDirectory}/nixos#linux'";
         toggle-scale = ''current=$(swaymsg -t get_outputs -r | jq -r ".[] | select(.name==\"eDP-1\") | .scale"); swaymsg "output eDP-1 scale $((3 - current))"'';
         silksong = "steam steam://rungameid/1030300";
       };
@@ -232,16 +208,7 @@ in
       '';
     };
 
-    programs.kitty = {
-      enable = true;
-      font = {
-        name = "Inconsolata";
-        size = 12;
-      };
-      settings = {
-        background = "#000000";
-      };
-    };
+    programs.kitty.font.size = 12;
 
     xdg.userDirs = {
       enable = true;
@@ -436,8 +403,6 @@ in
       grim
       slurp
       swappy
-      claude-code
-      codex
       vim
       gnome-sound-recorder
     ];

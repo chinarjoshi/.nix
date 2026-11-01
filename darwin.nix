@@ -174,7 +174,14 @@ in
 
     # Installed by the Homebrew cask. Home Manager only writes the config.
     programs.kitty.package = null;
-    programs.kitty.settings.font_size = 18;
+    programs.kitty.settings = {
+      font_size = 18;
+      macos_option_as_alt = "yes";
+    };
+    programs.kitty.keybindings = {
+      "opt+b" = "send_text all \\x1bb";
+      "opt+f" = "send_text all \\x1bf";
+    };
 
     # These steps are best effort, so one failure can't abort the activation.
     home.activation.blackWallpaper = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -286,14 +293,14 @@ in
       rebuild = "sudo darwin-rebuild switch --flake '${config.home.homeDirectory}/.nix#mac'";
     };
 
+    programs.zsh.envExtra = lib.mkBefore ''
+      export PATH="/opt/homebrew/opt/go@1.22/bin:/opt/homebrew/bin:$PATH"
+    '';
+
     programs.zsh.initContent = ''
-      unsetopt BEEP
-      unsetopt HIST_BEEP
-      unsetopt LIST_BEEP
       export LIBRARY_PATH="/opt/homebrew/lib/gcc/current''${LIBRARY_PATH:+:$LIBRARY_PATH}"
       export PATH="/opt/homebrew/bin:/opt/homebrew/opt/go@1.22/bin:$PATH"
       export SSH_SK_PROVIDER=/usr/local/lib/sk-libfido2.dylib
-      [ -f ~/.aliases.sh ] && . ~/.aliases.sh
     '';
   };
 

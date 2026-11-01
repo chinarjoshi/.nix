@@ -46,7 +46,7 @@ In fact, run this step on any machine you have home manager to get shell, aliase
 
 **On NixOS:**
 ```bash
-doas nixos-rebuild --rollback
+sudo nixos-rebuild --rollback
 ```
 
 **Standalone home-manager:**
