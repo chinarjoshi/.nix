@@ -204,6 +204,7 @@ in
       require("plugins.format")
       require("plugins.treesitter")
       require("config.lsp")
+      require("config.leader")
     '';
   };
 

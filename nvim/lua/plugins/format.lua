@@ -14,9 +14,7 @@ require("conform").setup({
     end,
 })
 
-vim.keymap.set({ "n", "v" }, "<leader>cf", function()
-    require("conform").format({ async = true, lsp_format = "fallback" })
-end, { desc = "Format buffer" })
+-- SPC c f formats (config/leader.lua).
 
 -- :FormatToggle  -> global, :FormatToggle! -> this buffer only
 vim.api.nvim_create_user_command("FormatToggle", function(args)

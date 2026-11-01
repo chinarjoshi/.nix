@@ -4,6 +4,14 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+-- No remote-plugin providers are used. Probing for them is not free: opening a
+-- .py file makes the python3 provider interrogate `python3` for pynvim, which
+-- took ~7s against the shared conda env on stark11.
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_ruby_provider = 0
+
 local o = vim.o
 
 -- Lines & navigation
@@ -43,7 +51,7 @@ o.confirm = true -- prompt instead of failing when quitting a dirty buffer
 o.termguicolors = true
 o.signcolumn = "yes" -- always reserve the gutter so text doesn't jump
 o.winborder = "rounded" -- 0.11+: borders on hover/diagnostic/signature floats
-o.showmode = false -- lualine already renders the mode
+o.showmode = true -- lualine no longer renders the mode; cmdline does
 o.pumheight = 10
 o.updatetime = 250
 o.timeoutlen = 400

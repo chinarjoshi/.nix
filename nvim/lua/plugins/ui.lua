@@ -34,16 +34,29 @@ require("tokyonight").setup({
 })
 vim.cmd.colorscheme("tokyonight")
 
+-- Minimal statusline: filename left, diagnostics and position right. Mode is
+-- back in the cmdline via showmode.
 require("lualine").setup({
     options = {
         theme = "tokyonight",
         globalstatus = true, -- one statusline, not one per split
         section_separators = "",
-        component_separators = "|",
+        component_separators = "",
     },
     sections = {
+        lualine_a = {},
+        lualine_b = {},
         lualine_c = { { "filename", path = 1 } }, -- path relative to cwd
-        lualine_x = { "diagnostics", "filetype" },
+        lualine_x = {
+            -- Letters instead of the default icons: one column each, and they
+            -- render the same in terminals without a patched font.
+            {
+                "diagnostics",
+                symbols = { error = "E", warn = "W", info = "I", hint = "H" },
+            },
+        },
+        lualine_y = {},
+        lualine_z = { "location" },
     },
 })
 
@@ -59,10 +72,7 @@ require("gitsigns").setup({
         map("n", "[c", function()
             gs.nav_hunk("prev")
         end, "Previous git hunk")
-        map("n", "<leader>gp", gs.preview_hunk, "Preview hunk")
-        map("n", "<leader>gb", gs.blame_line, "Blame line")
-        map("n", "<leader>gr", gs.reset_hunk, "Reset hunk")
-        map("n", "<leader>gd", gs.diffthis, "Diff this file")
+        -- Hunk actions live under SPC g (config/leader.lua).
     end,
 })
 

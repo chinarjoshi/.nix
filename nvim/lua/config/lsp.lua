@@ -101,8 +101,8 @@ end
 -- 4. Diagnostics presentation ---------------------------------------------------
 vim.diagnostic.config({
     -- No end-of-line virtual text. The gutter signs below still mark which
-    -- lines are affected; <leader>xd floats the message for the current line
-    -- and <leader>xq dumps them all to the loclist.
+    -- lines are affected; <C-w>d floats the message for the current line
+    -- and SPC c x lists them in Telescope.
     virtual_text = false,
     severity_sort = true,
     underline = true,
@@ -134,11 +134,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         map("gr", vim.lsp.buf.references, "References")
         map("gI", vim.lsp.buf.implementation, "Implementation")
         map("gy", vim.lsp.buf.type_definition, "Type definition")
-        map("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
-        map("<leader>ca", vim.lsp.buf.code_action, "Code action")
-        map("<leader>ih", function()
-            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }), { bufnr = event.buf })
-        end, "Toggle inlay hints")
+        -- Rename / code action / inlay hints: SPC c r, SPC c a, SPC t i.
 
         -- ruff's hover is empty; let pyright own hover for Python buffers.
         if client and client.name == "ruff" then
