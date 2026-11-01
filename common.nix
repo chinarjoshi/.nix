@@ -3,14 +3,18 @@
 let
   # Claude Code also writes to this file, so merge keys in instead of owning it.
   setClaudeSettings = pkgs.writeShellScript "set-claude-settings" ''
-    file="$HOME/.claude/settings.json"
     jq=${pkgs.jq}/bin/jq
+    merge() {
+      [ -f "$1" ] || echo '{}' > "$1"
+      tmp=$(mktemp)
+      $jq "$2" "$1" > "$tmp" && cat "$tmp" > "$1"
+      rm -f "$tmp"
+    }
     mkdir -p "$HOME/.claude"
-    [ -f "$file" ] || echo '{}' > "$file"
-    tmp=$(mktemp)
-    $jq '.permissions.defaultMode = "bypassPermissions" | .skipDangerousModePermissionPrompt = true' \
-      "$file" > "$tmp" && cat "$tmp" > "$file"
-    rm -f "$tmp"
+    merge "$HOME/.claude/settings.json" \
+      '.permissions.defaultMode = "bypassPermissions" | .skipDangerousModePermissionPrompt = true'
+    # Claude Code looks for trust in parent directories, so / covers everything.
+    merge "$HOME/.claude.json" '.projects["/"].hasTrustDialogAccepted = true'
   '';
 in
 {
@@ -89,6 +93,20 @@ in
       bindkey '^X^E' edit-command-line
 
       echo -e '\e[6 q'
+
+      # Trust from / stops at a repo's root, so each repo needs its own entry.
+      claude() {
+        local root tmp
+        root=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [ -n "$root" ] && [ -f ~/.claude.json ] \
+          && ! jq -e --arg r "$root" '.projects[$r].hasTrustDialogAccepted == true' ~/.claude.json >/dev/null; then
+          tmp=$(mktemp)
+          jq --arg r "$root" '.projects[$r].hasTrustDialogAccepted = true' ~/.claude.json > "$tmp" \
+            && [ -s "$tmp" ] && cat "$tmp" > ~/.claude.json
+          rm -f "$tmp"
+        fi
+        command claude "$@"
+      }
 
       mp4() {
         if [ -z "$1" ]; then

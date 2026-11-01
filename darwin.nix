@@ -33,6 +33,60 @@ let
     cc -x c -o $out/bin/set-reduce-motion $src
   '';
 
+  # Sets the built-in display's scaled resolution, which is the closest macOS
+  # has to a system font size and also sizes Chrome's tab names.
+  setDisplayMode = pkgs.runCommandCC "set-display-mode" {
+    src = pkgs.writeText "main.c" ''
+      #include <CoreGraphics/CoreGraphics.h>
+      #include <stdio.h>
+      #include <stdlib.h>
+
+      int main(int argc, char **argv) {
+        if (argc != 3) return 2;
+        size_t width = strtoul(argv[1], NULL, 10), height = strtoul(argv[2], NULL, 10);
+        CGDirectDisplayID displays[16], display = 0;
+        uint32_t count = 0;
+        CGGetActiveDisplayList(16, displays, &count);
+        for (uint32_t i = 0; i < count; i++)
+          if (CGDisplayIsBuiltin(displays[i])) display = displays[i];
+        if (!display) return 0;
+
+        const void *keys[] = { kCGDisplayShowDuplicateLowResolutionModes };
+        const void *values[] = { kCFBooleanTrue };
+        CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 1, NULL, NULL);
+        CFArrayRef modes = CGDisplayCopyAllDisplayModes(display, options);
+        for (CFIndex i = 0; i < CFArrayGetCount(modes); i++) {
+          CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
+          if (CGDisplayModeGetWidth(mode) != width || CGDisplayModeGetHeight(mode) != height
+              || CGDisplayModeGetPixelWidth(mode) != width * 2) continue;
+          CGDisplayModeRef current = CGDisplayCopyDisplayMode(display);
+          if (CGDisplayModeGetWidth(current) == width && CGDisplayModeGetHeight(current) == height) return 0;
+          CGDisplayConfigRef config;
+          if (CGBeginDisplayConfiguration(&config) != kCGErrorSuccess) return 1;
+          CGConfigureDisplayWithDisplayMode(config, display, mode, NULL);
+          return CGCompleteDisplayConfiguration(config, kCGConfigurePermanently) == kCGErrorSuccess ? 0 : 1;
+        }
+        fprintf(stderr, "no %zux%zu mode on the built-in display\n", width, height);
+        return 1;
+      }
+    '';
+  } ''
+    mkdir -p $out/bin
+    cc -x c -framework CoreGraphics -framework CoreFoundation -o $out/bin/set-display-mode $src
+  '';
+
+  # `schedule start` means sunset to sunrise. Applying it at night leaves Night
+  # Shift off until sunrise, so only apply it when needed and clear that state.
+  setNightShift = pkgs.writeShellScript "set-night-shift" ''
+    nightlight=${pkgs.nightlight}/bin/nightlight
+    if [ "$($nightlight schedule)" != "sunset to sunrise" ]; then
+      $nightlight schedule start || exit 1
+    fi
+    if [ "$($nightlight status)" = "off until sunrise" ]; then
+      $nightlight on
+    fi
+  '';
+
   # Level = log(factor) / log(1.2), so 0.5228 is 110%. Chrome rewrites its
   # profile on exit, so it has to be closed for the edit to stick. It only
   # stops and reopens with its tabs when the value needs changing.
@@ -195,10 +249,8 @@ in
         || echo "warning: could not reload input settings" >&2
     '';
 
-    # `schedule start` means sunset to sunrise.
     home.activation.nightShift = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      run ${pkgs.nightlight}/bin/nightlight schedule start \
-        || echo "warning: could not set the Night Shift schedule" >&2
+      run ${setNightShift} || echo "warning: could not set Night Shift" >&2
     '';
 
     # macOS may ask for confirmation the first time this changes the default.
@@ -216,6 +268,11 @@ in
       run /usr/bin/killall Rectangle || true
       run /usr/bin/open -a /Applications/Rectangle.app \
         || echo "warning: could not restart Rectangle" >&2
+    '';
+
+    home.activation.displayMode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      run ${setDisplayMode}/bin/set-display-mode 1440 932 \
+        || echo "warning: could not set the display mode" >&2
     '';
 
     home.activation.reduceMotion = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
